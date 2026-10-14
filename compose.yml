@@ -1,27 +1,52 @@
-version: "3.9"
+version: "3.8"
 
 services:
-  devopsdb:
-    image: Hari/flm-oct:db
+  app:
+    image: harireddy143/flm-oct:javaapp
+    container_name: app_cont
     ports:
-      - "3306:3306"
+      - "8080:8080"
+    environment:
+      - DB_HOST=db
+      - DB_PORT=3306
+      - DB_NAME=vprofile
+      - DB_USER=admin
+      - DB_PASS=admin123
+    depends_on:
+      - db
+    networks:
+      - appnet
     deploy:
       replicas: 1
-    networks:
-      - mynetwork
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
 
-  application:
-    image: Hari/flm-oct:javaapp
+  db:
+    image: harireddy143/flm-oct:db
+    container_name: db_cont
+    environment:
+      - MYSQL_ROOT_PASSWORD=admin123
+      - MYSQL_DATABASE=vprofile
+      - MYSQL_USER=admin
+      - MYSQL_PASSWORD=admin123
     ports:
-      - "1111:8080"
-    deploy:
-      replicas: 3
-    depends_on:
-      - devopsdb
+      - "3306:3306"
+    volumes:
+      - dbdata:/var/lib/mysql
     networks:
-      - mynetwork
+      - appnet
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
 
 networks:
-  mynetwork:
-  driver: overlay
+  appnet:
     driver: overlay
+
+volumes:
+  dbdata:
